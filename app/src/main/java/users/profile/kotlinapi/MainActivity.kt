@@ -25,6 +25,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         lsv=findViewById(R.id.lsv)
+        val intent=this.intent
+        val search=intent.getStringExtra("search")
         val retrofit = Retrofit.Builder()
             .baseUrl("https://api.tvmaze.com/")
             .addConverterFactory(GsonConverterFactory.create())
@@ -33,7 +35,7 @@ class MainActivity : AppCompatActivity() {
         val apiService = retrofit.create(ApiService::class.java)
 
 
-       val endpoint = "search/shows?q=golden girls" // Replace with user input
+       val endpoint = "search/shows?q="+search
         GlobalScope.launch(Dispatchers.IO) {
             apiService.searchShows(endpoint).enqueue(object : Callback<List<Map<String, Any?>>> {
                 override fun onResponse(call: Call<List<Map<String, Any?>>>, response: Response<List<Map<String, Any?>>>) {
@@ -44,16 +46,18 @@ class MainActivity : AppCompatActivity() {
                                 val showMap = show["show"] as Map<String, Any?>
                                 val name = showMap["name"].toString()
                                 val genre = showMap["genres"].toString()
-                                val rating = showMap["rating"].toString()
-                                val country = (showMap["network"]?.let { (it as Map<String, Any?>)["country"] }).toString()
+                                val rating = showMap["rating"]?.let { (it as Map<String, Any?>)["average"] }.toString()
+                                val country = (showMap["network"]?.let { (it as Map<String, Any?>)["country"] })?.let { (it as Map<String, Any?>)["name"] }.toString()
                                 val summary = showMap["summary"].toString()
-
+                                val imgurl = showMap["image"]?.let { (it as Map<String, Any?>)["original"] }.toString()
                                 Log.d("Show", "Name: $name")
                                 Log.d("Show", "Genre: $genre")
                                 Log.d("Show", "Rating: $rating")
                                 Log.d("Show", "Country: $country")
                                 Log.d("Show", "Summary: $summary")
-                                show("=https://static.tvmaze.com/uploads/images/medium_portrait/22/55709.jpg",
+                                Log.d("Show", "Summary: $imgurl")
+                                Log.d("Show", "Summary: $showMap")
+                                show(imgurl,
                                     name, genre ,
                                     rating, country,summary
                                 )

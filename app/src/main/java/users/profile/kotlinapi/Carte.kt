@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.ImageView
 import android.widget.TextView
+import com.squareup.picasso.Picasso
 import users.profile.kotlinapi.Model.Shows
 
 class Carte(private val context:Context,private val shows:Shows):BaseAdapter() {
@@ -38,7 +39,7 @@ class Carte(private val context:Context,private val shows:Shows):BaseAdapter() {
         country=convertView.findViewById(R.id.country)
         summary=convertView.findViewById(R.id.summary)
         var s=shows.getListShow().get(position)
-        img.setImageURI(Uri.parse(s.img))
+        Picasso.get().load(s.img).into(img)
         name.text=s.name
         genre.text=s.genre
         rating.text=s.rating
