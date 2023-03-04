@@ -3,6 +3,8 @@ package users.profile.kotlinapi
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.widget.ListView
+import users.profile.kotlinapi.Carte
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -12,12 +14,17 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import users.profile.kotlinapi.Model.Show
+import users.profile.kotlinapi.Model.Shows
 import users.profile.kotlinapi.viewModel.ApiService
 
 class MainActivity : AppCompatActivity() {
+    private lateinit var lsv:ListView
+    lateinit var adapter:Carte
+    var ss= Shows()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        lsv=findViewById(R.id.lsv)
         val retrofit = Retrofit.Builder()
             .baseUrl("https://api.tvmaze.com/")
             .addConverterFactory(GsonConverterFactory.create())
@@ -32,14 +39,36 @@ class MainActivity : AppCompatActivity() {
                 override fun onResponse(call: Call<List<Map<String, Any?>>>, response: Response<List<Map<String, Any?>>>) {
                     if (response.isSuccessful) {
                         val shows = response.body()
-                        Log.d("fffffffffffffffff",shows?.get(0)?.get("score").toString())
+                        if(shows!=null) {
+                            shows.forEach { show ->
+                                val showMap = show["show"] as Map<String, Any?>
+                                val name = showMap["name"].toString()
+                                val genre = showMap["genres"].toString()
+                                val rating = showMap["rating"].toString()
+                                val country = (showMap["network"]?.let { (it as Map<String, Any?>)["country"] }).toString()
+                                val summary = showMap["summary"].toString()
 
+                                Log.d("Show", "Name: $name")
+                                Log.d("Show", "Genre: $genre")
+                                Log.d("Show", "Rating: $rating")
+                                Log.d("Show", "Country: $country")
+                                Log.d("Show", "Summary: $summary")
+                                show("=https://static.tvmaze.com/uploads/images/medium_portrait/22/55709.jpg",
+                                    name, genre ,
+                                    rating, country,summary
+                                )
+
+                            }
+                            try {
+                                Design(ss)
+                            }catch (e:Exception){
+                                e.printStackTrace()
+                            }
+                        }
                     } else {
                         Log.e("Error", "Request failed with code ${response.code()}")
                     }
                 }
-
-
                 override fun onFailure(call: Call<List<Map<String, Any?>>>, t: Throwable) {
                     // Handle error here
                     Log.e("Error", t.message ?: "Unknown error")
@@ -48,5 +77,31 @@ class MainActivity : AppCompatActivity() {
             })
         }
    }
-    fun  show(val img:String,val name: String,val genre:String,val rating:String,val contry:String, val summary: String)
+    fun  show(img:String,name: String,genre:String,rating:String,contry:String,summary: String){
+        var show=Show(img,name, genre, rating, contry, summary)
+        ss.ajouter(show)
+    }
+
+    fun Design(s:Shows){
+      /*var liste=ArrayList<HashMap<String,Any>>()
+      for(i in s.getListShow()){
+          var h=HashMap<String,Any>()
+          h.put("img",i.img)
+          h.put("name",i.name)
+          h.put("genre",i.genre)
+          h.put("rating",i.rating)
+          h.put("country",i.contry)
+          h.put("summary",i.summary)
+          liste.add(h)
+      }*/
+        adapter= Carte(this,s)
+        lsv.adapter=adapter
+
+
+
+    }
+
+
 }
+
+
